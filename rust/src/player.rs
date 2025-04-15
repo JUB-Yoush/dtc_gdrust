@@ -14,10 +14,10 @@ struct Player {
 #[godot_api]
 impl ISprite2D for Player {
     fn init(base: Base<Sprite2D>) -> Self {
-        godot_print!("Hello, world");
+        godot_print!("Hello, my baka life!!!");
 
         Self {
-            speed: 100.0,
+            speed: 1000.0,
             angular_speed: std::f64::consts::PI,
             base,
         }
