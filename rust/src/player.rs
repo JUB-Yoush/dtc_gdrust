@@ -1,6 +1,8 @@
 use godot::classes::AnimatedSprite2D;
 use godot::classes::Area2D;
+use godot::classes::CollisionShape2D;
 use godot::classes::IArea2D;
+use godot::classes::Input;
 use godot::classes::PhysicsBody2D;
 use godot::prelude::*;
 
@@ -15,9 +17,16 @@ struct Player {
 #[godot_api]
 impl Player {
     #[signal]
-    pub fn hit();
+    fn hit();
 
-    fn on_player_body_entered(&mut self, _body: Gd<PhysicsBody2D>) {}
+    #[func]
+    fn on_player_body_entered(&mut self, _body: Gd<PhysicsBody2D>) {
+        godot_print!("hit");
+        self.base_mut().hide();
+        let mut collision_shape: Gd<CollisionShape2D> = self.base().get_node_as("CollisionShape2D");
+        collision_shape.set_disabled(true);
+        self.signals().hit().emit();
+    }
 }
 
 #[godot_api]
@@ -35,18 +44,17 @@ impl IArea2D for Player {
     fn ready(&mut self) {
         let viewport = self.base().get_viewport_rect();
         self.screen_size = viewport.size;
-        self.base_mut().hide();
-        self.signals()
-            .hit()
-            .connect_self(Self::on_player_body_entered);
+        //self.base_mut().hide();
+        self.base()
+            .signals()
+            .body_entered()
+            .connect(Self::on_player_body_entered);
     }
 
     fn process(&mut self, delta: f64) {
         let mut animated_sprite: Gd<AnimatedSprite2D> = self.base().get_node_as("AnimatedSprite2D");
         let mut velocity = Vector2::new(0.0, 0.0);
-        let input = Input::singleton();
-        let dir = input.get_vector("left", "right", "up", "down");
-
+        let dir = Input::singleton().get_vector("left", "right", "up", "down");
         velocity = Vector2::new(
             dir.x * self.speed * (delta as f32),
             dir.y * self.speed * (delta as f32),
