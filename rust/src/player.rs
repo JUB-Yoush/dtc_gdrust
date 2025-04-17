@@ -20,7 +20,7 @@ impl Player {
     fn hit();
 
     #[func]
-    fn on_player_body_entered(&mut self, _body: Gd<PhysicsBody2D>) {
+    fn on_body_entered(&mut self, _body: Gd<Node2D>) {
         godot_print!("hit");
         self.base_mut().hide();
         let mut collision_shape: Gd<CollisionShape2D> = self.base().get_node_as("CollisionShape2D");
@@ -45,10 +45,15 @@ impl IArea2D for Player {
         let viewport = self.base().get_viewport_rect();
         self.screen_size = viewport.size;
         //self.base_mut().hide();
-        self.base()
-            .signals()
+        // self.base()
+        //     .signals()
+        //     .body_entered()
+        //     .connect(move |body| self.on_body_entered(body));
+        let area = self.base().get_node_as::<Area2D>("my path");
+        let mut this = self.base_mut();
+        area.signals()
             .body_entered()
-            .connect(Self::on_player_body_entered);
+            .connect(move |body| this.bind().on_body_entered(body));
     }
 
     fn process(&mut self, delta: f64) {
